@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>GARAGE PARKING SYSTEM - Light Operations Core</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#4f46e5",
+            secondary: "#006c4a",
+            surface: "#ffffff",
+            "on-surface": "#0f172a"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+            display: ["Space Grotesk", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .telemetry-grid {
+      background-size: 28px 28px;
+      background-image: linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="fixed top-0 left-0 h-screen w-64 flex flex-col justify-between bg-white border-r border-slate-200 shadow-sm z-50 transition-transform duration-300 -translate-x-full md:translate-x-0" id="sideNavBar">
+    <!-- Brand / Header -->
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm font-display font-bold text-lg">
+          P
+        </div>
+        <div>
+          <h1 class="text-xs font-bold tracking-wider text-slate-900 uppercase">PARK-OPS CORE</h1>
+          <p class="text-[11px] font-mono text-slate-500">Terminal L1-Dispatch</p>
+        </div>
+      </div>
+      <button class="md:hidden text-slate-400 hover:text-slate-700" onclick="toggleSidebar()">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar" id="navLinksContainer">
+      <button class="w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-semibold border-l-4 border-indigo-600 text-sm transition-colors" data-target="view-dashboard" onclick="switchView('view-dashboard')">
+        <span class="material-symbols-outlined text-indigo-600 text-xl">dashboard</span>
+        <span>Dashboard Overview</span>
+      </button>
+      <button class="w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors" data-target="view-entry" onclick="switchView('view-entry')">
+        <span class="material-symbols-outlined text-slate-400 text-xl">login</span>
+        <span>Vehicle Entry</span>
+      </button>
+      <button class="w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors" data-target="view-exit" onclick="switchView('view-exit')">
+        <span class="material-symbols-outlined text-slate-400 text-xl">receipt_long</span>
+        <span>Vehicle Exit &amp; Billing</span>
+      </button>
+      <button class="w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors" data-target="view-slots" onclick="switchView('view-slots')">
+        <span class="material-symbols-outlined text-slate-400 text-xl">grid_view</span>
+        <span>Parking Slots Visualizer</span>
+      </button>
+      <button class="w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors" data-target="view-history" onclick="switchView('view-history')">
+        <span class="material-symbols-outlined text-slate-400 text-xl">history</span>
+        <span>Parking History</span>
+      </button>
+      <button class="w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors" data-target="view-users" onclick="switchView('view-users')">
+        <span class="material-symbols-outlined text-slate-400 text-xl">manage_accounts</span>
+        <span>User Management</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3 border-t border-slate-200 space-y-2 bg-slate-50/60">
+      <div class="px-2 py-1 space-y-1 border-b border-slate-200 pb-2 text-xs text-slate-600">
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm text-slate-400">tune</span>
+            System Diagnostics
+          </span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        </div>
+        <div class="flex items-center gap-2 pt-0.5 text-slate-600">
+          <span class="material-symbols-outlined text-sm text-slate-400">settings</span>
+          Facility Settings
+        </div>
+      </div>
+      <!-- User profile pill -->
+      <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 shadow-xs">
+        <div class="flex items-center gap-2.5">
+          <div class="relative w-8 h-8 rounded-full overflow-hidden bg-indigo-100 border border-indigo-200 flex items-center justify-center font-bold text-xs text-indigo-700">
+            RS
+            <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-1 ring-white"></span>
+          </div>
+          <div>
+            <p class="font-semibold text-xs text-slate-900">R. Sterling</p>
+            <p class="text-[10px] text-slate-500">Lead Dispatcher</p>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-rose-600 p-1" onclick="openLoginModal()" title="Logout">
+          <span class="material-symbols-outlined text-base">logout</span>
+        </button>
+      </div>
+      <button class="w-full py-1.5 px-3 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs flex items-center justify-center gap-1.5 border border-slate-200 shadow-xs transition-colors" onclick="openLoginModal()">
+        <span class="material-symbols-outlined text-sm text-slate-500">power_settings_new</span>
+        <span>Log Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 md:ml-64 flex flex-col min-h-screen bg-slate-50/70 telemetry-grid">
+    <!-- TOP BAR -->
+    <header class="sticky top-0 right-0 z-40 w-full bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 shadow-xs">
+      <div class="flex items-center gap-3">
+        <button class="md:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100" onclick="toggleSidebar()">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div>
+          <span class="text-xs sm:text-sm font-bold tracking-wider uppercase text-slate-900 font-display">GARAGE PARKING SYSTEM</span>
+          <div class="hidden sm:flex items-center gap-2 mt-0.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">BACKEND: JDBC CONNECTED (MySQL:3306)</span>
+            <span class="text-slate-300">|</span>
+            <span class="text-[11px] font-mono text-slate-500">Node: L1-CORE-S1</span>
+          </div>
+        </div>
+      </div>
+      <!-- Right Controls -->
+      <div class="flex items-center gap-3">
+        <div class="relative hidden lg:block w-72">
+          <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+          <input class="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 pl-8 pr-3 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white placeholder:text-slate-400" id="globalSearch" placeholder="Search Plate / Ticket / Slot..." type="text"/>
+        </div>
+        <button class="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg border border-slate-200" title="Notifications">
+          <span class="material-symbols-outlined text-lg">notifications</span>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full"></span>
+        </button>
+        <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 shadow-xs text-left" onclick="openLoginModal()">
+          <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">OP</div>
+          <div class="hidden sm:block">
+            <span class="text-xs font-semibold text-slate-800 block leading-tight">Admin / Dispatcher</span>
+            <span class="text-[10px] text-indigo-600 block leading-tight">Switch Session</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-400 text-sm">expand_more</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW AREA -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- ========================================== -->
+      <!-- VIEW 1: DASHBOARD OVERVIEW -->
+      <!-- ========================================== -->
+      <section class="spa-view space-y-6 block" id="view-dashboard">
+        <!-- Top Action Banner -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div>
+            <h2 class="text-xl font-bold font-display text-slate-900">Terminal Dispatch Overview</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Real-time slot utilization, active transactions, and gate throughput telemetry.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all" onclick="switchView('view-entry')">
+              <span class="material-symbols-outlined text-base">add_circle</span>
+              <span>New Vehicle Entry</span>
+            </button>
+            <button class="px-3.5 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors" onclick="switchView('view-exit')">
+              <span class="material-symbols-outlined text-base text-slate-500">point_of_sale</span>
+              <span>Checkout &amp; Bill</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 Metrics Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <!-- Total Slots -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Slots</span>
+              <span class="material-symbols-outlined text-indigo-600 text-lg">local_parking</span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span class="text-3xl font-bold font-display text-slate-900">40</span>
+              <span class="text-xs text-slate-400">Bays</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Standard &amp; 2-Wheeler</p>
+          </div>
+
+          <!-- Available Slots -->
+          <div class="bg-emerald-50/80 p-4 rounded-xl border border-emerald-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Available</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span class="text-3xl font-bold font-display text-emerald-700" id="stat-available">17</span>
+              <span class="text-xs font-semibold text-emerald-700">Free</span>
+            </div>
+            <p class="text-xs text-emerald-600 mt-1 font-medium">Ready for Allocation</p>
+          </div>
+
+          <!-- Occupied Slots -->
+          <div class="bg-rose-50/80 p-4 rounded-xl border border-rose-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-rose-800">Occupied</span>
+              <span class="material-symbols-outlined text-rose-600 text-sm">lock</span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span class="text-3xl font-bold font-display text-rose-700" id="stat-occupied">23</span>
+              <span class="text-xs font-semibold text-rose-700">In-Use</span>
+            </div>
+            <p class="text-xs text-rose-600 mt-1 font-medium">57.5% Load Factor</p>
+          </div>
+
+          <!-- Cars Parked -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Cars Parked</span>
+              <span class="material-symbols-outlined text-indigo-600 text-lg">directions_car</span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span class="text-3xl font-bold font-display text-slate-900">15</span>
+              <span class="text-xs text-slate-400">/ 25</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Car Capacity: 60%</p>
+          </div>
+
+          <!-- Bikes Parked -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bikes Parked</span>
+              <span class="material-symbols-outlined text-indigo-600 text-lg">two_wheeler</span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1.5">
+              <span class="text-3xl font-bold font-display text-slate-900">8</span>
+              <span class="text-xs text-slate-400">/ 15</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Bike Capacity: 53%</p>
+          </div>
+
+          <!-- Today's Revenue -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Today's Revenue</span>
+              <span class="material-symbols-outlined text-emerald-600 text-lg">payments</span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-1">
+              <span class="text-3xl font-bold font-display text-slate-900">₹1,850</span>
+            </div>
+            <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-1">
+              <span class="material-symbols-outlined text-xs">trending_up</span>
+              <span>+12.4% vs y'day</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Module Navigation Quick Shortcuts -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <button class="p-3 bg-white rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm flex flex-col items-center justify-center text-center transition-all group" onclick="switchView('view-entry')">
+            <span class="material-symbols-outlined text-indigo-600 group-hover:scale-110 mb-1 transition-transform">login</span>
+            <span class="text-xs font-semibold text-slate-800">Vehicle Entry</span>
+            <span class="text-[10px] text-slate-400">Person 2</span>
+          </button>
+          <button class="p-3 bg-white rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm flex flex-col items-center justify-center text-center transition-all group" onclick="switchView('view-exit')">
+            <span class="material-symbols-outlined text-indigo-600 group-hover:scale-110 mb-1 transition-transform">receipt_long</span>
+            <span class="text-xs font-semibold text-slate-800">Exit &amp; Billing</span>
+            <span class="text-[10px] text-slate-400">Person 2</span>
+          </button>
+          <button class="p-3 bg-white rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm flex flex-col items-center justify-center text-center transition-all group" onclick="switchView('view-slots')">
+            <span class="material-symbols-outlined text-indigo-600 group-hover:scale-110 mb-1 transition-transform">grid_view</span>
+            <span class="text-xs font-semibold text-slate-800">Slots Grid</span>
+            <span class="text-[10px] text-slate-400">Person 3</span>
+          </button>
+          <button class="p-3 bg-white rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm flex flex-col items-center justify-center text-center transition-all group" onclick="switchView('view-history')">
+            <span class="material-symbols-outlined text-indigo-600 group-hover:scale-110 mb-1 transition-transform">history</span>
+            <span class="text-xs font-semibold text-slate-800">Parking Logs</span>
+            <span class="text-[10px] text-slate-400">Person 3</span>
+          </button>
+          <button class="p-3 bg-white rounded-xl border border-slate-200 hover:border-indigo-400 hover:shadow-sm flex flex-col items-center justify-center text-center transition-all group" onclick="switchView('view-users')">
+            <span class="material-symbols-outlined text-indigo-600 group-hover:scale-110 mb-1 transition-transform">manage_accounts</span>
+            <span class="text-xs font-semibold text-slate-800">User Admin</span>
+            <span class="text-[10px] text-slate-400">Person 3</span>
+          </button>
+          <button class="p-3 bg-white rounded-xl border border-slate-200 hover:border-rose-400 hover:shadow-sm flex flex-col items-center justify-center text-center transition-all group" onclick="openLoginModal()">
+            <span class="material-symbols-outlined text-rose-500 group-hover:scale-110 mb-1 transition-transform">logout</span>
+            <span class="text-xs font-semibold text-slate-800">Session Switch</span>
+            <span class="text-[10px] text-slate-400">Log Out</span>
+          </button>
+        </div>
+
+        <!-- Recent Live Parking Feed Mini-Table -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-600 text-lg">receipt</span>
+              <h3 class="font-bold text-sm text-slate-900">Recent Live Parking Feed</h3>
+            </div>
+            <button class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs flex items-center gap-1" onclick="switchView('view-history')">
+              <span>View Full History</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-mono text-[11px]">
+                <tr>
+                  <th class="py-3 px-4 font-semibold">Ticket ID</th>
+                  <th class="py-3 px-4 font-semibold">Plate Number</th>
+                  <th class="py-3 px-4 font-semibold">Category</th>
+                  <th class="py-3 px-4 font-semibold">Slot</th>
+                  <th class="py-3 px-4 font-semibold">Entry Timestamp</th>
+                  <th class="py-3 px-4 font-semibold">Status</th>
+                  <th class="py-3 px-4 text-right font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0001</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">MH04AB1234</span></td>
+                  <td class="py-3 px-4 text-slate-600">Car</td>
+                  <td class="py-3 px-4 font-bold text-emerald-600 font-mono">C04</td>
+                  <td class="py-3 px-4 text-slate-500">10:30 AM (Today)</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Parked</span></td>
+                  <td class="py-3 px-4 text-right">
+                    <button class="text-indigo-600 hover:text-indigo-800 font-semibold" onclick="populateAndGoExit('T0001')">Checkout</button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0002</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">KA01MJ9082</span></td>
+                  <td class="py-3 px-4 text-slate-600">Bike</td>
+                  <td class="py-3 px-4 font-bold text-emerald-600 font-mono">B02</td>
+                  <td class="py-3 px-4 text-slate-500">11:15 AM (Today)</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Parked</span></td>
+                  <td class="py-3 px-4 text-right">
+                    <button class="text-indigo-600 hover:text-indigo-800 font-semibold" onclick="populateAndGoExit('T0002')">Checkout</button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0003</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">DL03CX4412</span></td>
+                  <td class="py-3 px-4 text-slate-600">Car</td>
+                  <td class="py-3 px-4 font-bold text-slate-500 font-mono">C08</td>
+                  <td class="py-3 px-4 text-slate-500">09:00 AM</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Completed</span></td>
+                  <td class="py-3 px-4 text-right"><span class="text-slate-500 font-medium">Paid ₹90</span></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0004</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">TS09EG7711</span></td>
+                  <td class="py-3 px-4 text-slate-600">Car</td>
+                  <td class="py-3 px-4 font-bold text-emerald-600 font-mono">C02</td>
+                  <td class="py-3 px-4 text-slate-500">11:42 AM (Today)</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Parked</span></td>
+                  <td class="py-3 px-4 text-right">
+                    <button class="text-indigo-600 hover:text-indigo-800 font-semibold" onclick="populateAndGoExit('T0004')">Checkout</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: VEHICLE ENTRY MODULE -->
+      <!-- ========================================== -->
+      <section class="spa-view space-y-6 hidden" id="view-entry">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+            <div class="border-b border-slate-200 pb-3">
+              <span class="text-xs font-mono font-bold text-indigo-600 uppercase">Person 2 Module</span>
+              <h2 class="text-lg font-bold font-display text-slate-900">Vehicle Entry &amp; Bay Allocation</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Capture incoming vehicle credentials to initiate automated slot assignment.</p>
+            </div>
+            <form class="space-y-4" onsubmit="handleVehicleEntry(event)">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Vehicle License Plate Number</label>
+                <div class="flex rounded-lg border border-slate-300 overflow-hidden focus-within:border-indigo-600 focus-within:ring-1 focus-within:ring-indigo-600">
+                  <span class="inline-flex items-center px-3 font-mono text-xs font-bold bg-slate-100 text-slate-700 border-r border-slate-300">IND</span>
+                  <input class="w-full py-2.5 px-3 font-mono text-sm text-slate-900 uppercase focus:outline-none" id="entryPlate" placeholder="e.g., MH04AB1234" required="" type="text" value="MH04AB1234"/>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Vehicle Category</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="cursor-pointer border border-emerald-300 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-between has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-emerald-600">directions_car</span>
+                      <div>
+                        <p class="font-semibold text-xs text-slate-900">Four-Wheeler</p>
+                        <p class="text-[10px] text-slate-500">Car / SUV (₹30/hr)</p>
+                      </div>
+                    </div>
+                    <input checked="" class="text-emerald-600 focus:ring-emerald-500" name="vehicleType" type="radio" value="Car"/>
+                  </label>
+                  <label class="cursor-pointer border border-slate-200 bg-slate-50 rounded-xl p-3 flex items-center justify-between has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-outlined text-indigo-600">two_wheeler</span>
+                      <div>
+                        <p class="font-semibold text-xs text-slate-900">Two-Wheeler</p>
+                        <p class="text-[10px] text-slate-500">Motorbike (₹20/hr)</p>
+                      </div>
+                    </div>
+                    <input class="text-indigo-600 focus:ring-indigo-500" name="vehicleType" type="radio" value="Bike"/>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Driver / Owner Name</label>
+                  <input class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="entryOwner" placeholder="e.g., John Doe" type="text" value="John Doe"/>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Mobile Contact</label>
+                  <input class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="entryMobile" placeholder="+91 9876543210" type="tel" value="+91 9876543210"/>
+                </div>
+              </div>
+
+              <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                <button class="flex-1 py-2.5 px-4 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors" onclick="autoAssignSlot()" type="button">
+                  <span class="material-symbols-outlined text-sm text-indigo-600">travel_explore</span>
+                  <span>ASSIGN SLOT (NEAREST)</span>
+                </button>
+                <button class="flex-1 py-2.5 px-4 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-all" type="submit">
+                  <span class="material-symbols-outlined text-sm">confirmation_number</span>
+                  <span>GENERATE TICKET</span>
+                </button>
+              </div>
+            </form>
+
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between" id="assignedBanner">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-mono text-base font-bold shadow-xs">
+                  C04
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-slate-900">Assigned Slot: <span class="text-emerald-700 font-mono">C04</span></p>
+                  <p class="text-[11px] text-slate-600">Zone A • Level 1 (Ground Floor - North Corridor)</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-300">BAY LOCKED</span>
+            </div>
+          </div>
+
+          <!-- Thermal Gate Pass Preview -->
+          <div class="lg:col-span-5 flex flex-col">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                  <span class="text-xs font-semibold uppercase text-slate-500">Thermal Gate Pass</span>
+                  <span class="text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">Active Session</span>
+                </div>
+                <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 shadow-xs">
+                  <div class="text-center pb-2 border-b border-dashed border-slate-300">
+                    <p class="font-bold text-xs text-slate-900 tracking-wider">GARAGE PARKING SYSTEM</p>
+                    <p class="text-[10px] text-slate-500">TERMINAL DISPATCH L1 • GATE 01</p>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span class="text-slate-500 block text-[10px]">Ticket ID</span>
+                      <span class="font-bold text-indigo-700 font-mono" id="ticketPreviewId">T0001</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-slate-500 block text-[10px]">Allocated Slot</span>
+                      <span class="font-bold text-emerald-700 font-mono" id="ticketPreviewSlot">C04</span>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block text-[10px]">Vehicle Plate</span>
+                      <span class="font-bold text-slate-900 font-mono" id="ticketPreviewPlate">MH04AB1234</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-slate-500 block text-[10px]">Vehicle Type</span>
+                      <span class="font-bold text-slate-900" id="ticketPreviewType">Car (4-Wheeler)</span>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block text-[10px]">Entry Time</span>
+                      <span class="font-bold text-slate-900" id="ticketPreviewTime">10:30 AM (TODAY)</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-slate-500 block text-[10px]">Tariff Rate</span>
+                      <span class="font-bold text-slate-900">₹30 First Hr</span>
+                    </div>
+                  </div>
+                  <div class="pt-3 border-t border-dashed border-slate-300 flex flex-col items-center">
+                    <div class="w-full h-8 bg-white rounded border border-slate-200 flex items-center justify-center tracking-widest text-slate-600 text-xs font-mono">
+                      ||| | ||||| || |||||| | || |||| | |||| |||
+                    </div>
+                    <span class="text-[10px] text-slate-500 mt-1 font-mono">*T0001-MH04AB1234-C04*</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pt-4 flex gap-2">
+                <button class="flex-1 py-2 px-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs" onclick="window.print()">
+                  <span class="material-symbols-outlined text-sm">print</span>
+                  <span>Print Slip</span>
+                </button>
+                <button class="flex-1 py-2 px-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs" onclick="switchView('view-slots')">
+                  <span class="material-symbols-outlined text-sm">map</span>
+                  <span>Locate Bay</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 3: VEHICLE EXIT & BILLING -->
+      <!-- ========================================== -->
+      <section class="spa-view space-y-6 hidden" id="view-exit">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-mono font-bold text-indigo-600 uppercase">Person 2 Module</span>
+            <h2 class="text-lg font-bold font-display text-slate-900">Vehicle Exit &amp; Automated Tariff Calculation</h2>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Billing Engine: <strong class="text-emerald-700">ACTIVE</strong></span>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <label class="block text-xs font-semibold uppercase text-slate-600">Lookup Parking Pass / Ticket ID</label>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">confirmation_number</span>
+              <input class="w-full bg-white border border-slate-300 rounded-lg py-2.5 pl-10 pr-3 font-mono text-sm text-slate-900 uppercase focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 shadow-xs" id="exitSearchInput" placeholder="Enter Ticket ID e.g., T0001" type="text" value="T0001"/>
+            </div>
+            <button class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-sm" onclick="lookupExitTicket()">
+              <span class="material-symbols-outlined text-sm">search</span>
+              <span>SEARCH TICKET</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-600">account_balance_wallet</span>
+              Calculated Settlement Statement
+            </h3>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold">READY FOR CHECKOUT</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase text-slate-500 block font-semibold">Vehicle Plate</span>
+              <span class="font-mono text-sm font-bold text-slate-900 block mt-1" id="exitBillPlate">MH04AB1234</span>
+              <span class="text-[11px] text-indigo-600">Car (Standard)</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase text-slate-500 block font-semibold">Allocated Slot</span>
+              <span class="font-mono text-sm font-bold text-emerald-700 block mt-1" id="exitBillSlot">C04</span>
+              <span class="text-[11px] text-slate-500">Level 1 • Zone A</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase text-slate-500 block font-semibold">Entry Time</span>
+              <span class="text-xs font-semibold text-slate-900 block mt-1" id="exitBillEntry">10:30 AM</span>
+              <span class="text-[11px] text-slate-500">Check-in stamp</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <span class="text-[10px] uppercase text-slate-500 block font-semibold">Exit Time</span>
+              <span class="text-xs font-semibold text-slate-900 block mt-1" id="exitBillExit">02:45 PM</span>
+              <span class="text-[11px] text-emerald-600 font-medium">Live timestamp</span>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p class="text-xs text-slate-500 uppercase font-semibold">Computed Elapsed Duration</p>
+              <p class="text-xl font-bold font-display text-indigo-700 mt-0.5" id="exitBillDuration">4 hr 15 min</p>
+              <p class="text-xs text-slate-500">Billed as 5 Hours (fractional hour rounded up)</p>
+            </div>
+            <div class="text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-300">
+              <p class="text-xs text-emerald-800 uppercase font-bold">Total Parking Fee</p>
+              <p class="text-3xl font-bold font-display text-emerald-700" id="exitBillAmount">₹90</p>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 space-y-1">
+            <span class="text-slate-900 font-semibold block uppercase text-[11px]">Official Tariff Schedule Reference:</span>
+            <p>• Car: ₹30 first hr, ₹20 each additional hour (Calculation: ₹30 + 3 x ₹20 = ₹90)</p>
+            <p>• Bike: ₹20 first hr, ₹10 each additional hour</p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button class="flex-1 py-2.5 px-4 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold flex items-center justify-center gap-2 shadow-xs" onclick="alert('Generating receipt slip for Ticket: ' + document.getElementById('exitSearchInput').value)">
+              <span class="material-symbols-outlined text-sm text-slate-500">receipt</span>
+              <span>GENERATE BILL (PRINT RECEIPT)</span>
+            </button>
+            <button class="flex-1 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all" onclick="completeExitProcess()">
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              <span>COMPLETE EXIT &amp; FREE SLOT</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 4: PARKING SLOTS VISUALIZER -->
+      <!-- ========================================== -->
+      <section class="spa-view space-y-6 hidden" id="view-slots">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-mono font-bold text-indigo-600 uppercase">Person 3 Module</span>
+            <h2 class="text-lg font-bold font-display text-slate-900">Interactive Bay Telemetry &amp; Visualizer</h2>
+            <p class="text-xs text-slate-500">Real-time occupancy matrix across Level 1 standard and two-wheeler wings.</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button class="px-3.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-300 text-xs font-bold" id="btnFilterAll" onclick="filterSlots('all')">All (40)</button>
+            <button class="px-3.5 py-1.5 rounded-lg bg-white text-slate-700 hover:text-emerald-700 border border-slate-300 text-xs flex items-center gap-1.5" id="btnFilterAvail" onclick="filterSlots('available')">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Available (17)</span>
+            </button>
+            <button class="px-3.5 py-1.5 rounded-lg bg-white text-slate-700 hover:text-rose-700 border border-slate-300 text-xs flex items-center gap-1.5" id="btnFilterOcc" onclick="filterSlots('occupied')">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Occupied (23)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Car Section (Slots C01 to C10) -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-600">directions_car</span>
+              <h3 class="font-bold text-sm text-slate-900">Car Section (Slots C01 - C10)</h3>
+            </div>
+            <span class="text-xs text-slate-500">Rate: ₹30/hr • Ground Floor Wing Alpha</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="carSlotsGrid">
+            <!-- C01 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('C01', 'Car', 'Occupied', 'DL03CX4412', '09:00 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C01</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">directions_car</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">DL03CX4412</span>
+              </div>
+            </div>
+            <!-- C02 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('C02', 'Car', 'Occupied', 'TS09EG7711', '11:42 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C02</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">directions_car</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">TS09EG7711</span>
+              </div>
+            </div>
+            <!-- C03 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('C03', 'Car', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C03</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+            <!-- C04 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('C04', 'Car', 'Occupied', 'MH04AB1234', '10:30 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C04</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">directions_car</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">MH04AB1234</span>
+              </div>
+            </div>
+            <!-- C05 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('C05', 'Car', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C05</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+            <!-- C06 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('C06', 'Car', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C06</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+            <!-- C07 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('C07', 'Car', 'Occupied', 'KA05NE9941', '08:45 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C07</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">directions_car</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">KA05NE9941</span>
+              </div>
+            </div>
+            <!-- C08 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('C08', 'Car', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C08</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+            <!-- C09 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('C09', 'Car', 'Occupied', 'UP32BB2004', '11:05 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C09</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">directions_car</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">UP32BB2004</span>
+              </div>
+            </div>
+            <!-- C10 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('C10', 'Car', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">C10</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bike Section (Slots B01 to B10) -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-600">two_wheeler</span>
+              <h3 class="font-bold text-sm text-slate-900">Bike Section (Slots B01 - B10)</h3>
+            </div>
+            <span class="text-xs text-slate-500">Rate: ₹20/hr • Ground Floor Wing Beta</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="bikeSlotsGrid">
+            <!-- B01 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('B01', 'Bike', 'Occupied', 'MH12AA7788', '08:15 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">B01</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">two_wheeler</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">MH12AA7788</span>
+              </div>
+            </div>
+            <!-- B02 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('B02', 'Bike', 'Occupied', 'KA01MJ9082', '11:15 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">B02</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">two_wheeler</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">KA01MJ9082</span>
+              </div>
+            </div>
+            <!-- B03 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('B03', 'Bike', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">B03</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+            <!-- B04 -->
+            <div class="slot-card available p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-xs cursor-pointer hover:border-emerald-400 transition-all" onclick="inspectSlot('B04', 'Bike', 'Available', 'None', 'Vacant')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">B04</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-emerald-100 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <span class="text-[10px] text-emerald-600 font-bold mt-0.5">AVAILABLE</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="text-[10px] text-slate-500 font-medium">Open Bay</span>
+              </div>
+            </div>
+            <!-- B05 -->
+            <div class="slot-card occupied p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-xs cursor-pointer hover:border-rose-400 transition-all" onclick="inspectSlot('B05', 'Bike', 'Occupied', 'DL07ZZ1122', '07:30 AM')">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-slate-900">B05</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              </div>
+              <div class="mt-2 flex flex-col items-center py-2 bg-white rounded-lg border border-rose-100 shadow-xs">
+                <span class="material-symbols-outlined text-rose-500 text-xl">two_wheeler</span>
+                <span class="text-[10px] text-rose-600 font-bold mt-0.5">OCCUPIED</span>
+              </div>
+              <div class="mt-1.5 text-center">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-slate-800">DL07ZZ1122</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 5: PARKING HISTORY -->
+      <!-- ========================================== -->
+      <section class="spa-view space-y-6 hidden" id="view-history">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-mono font-bold text-indigo-600 uppercase">Person 3 Module</span>
+            <h2 class="text-lg font-bold font-display text-slate-900">Archived &amp; Active Parking Logs</h2>
+            <p class="text-xs text-slate-500">Comprehensive audit trail interfaced with MySQL transactional repository.</p>
+          </div>
+          <button class="px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-2 shadow-xs" onclick="exportCSV()">
+            <span class="material-symbols-outlined text-sm text-slate-500">download</span>
+            <span>Export CSV Report</span>
+          </button>
+        </div>
+
+        <!-- History Filter Bar -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold uppercase text-slate-600 mb-1">Ticket / Plate Filter</label>
+            <input class="w-full bg-white border border-slate-300 rounded-lg py-1.5 px-3 font-mono text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="historyPlateFilter" onkeyup="filterHistoryTable()" placeholder="e.g. MH04 or T0001" type="text"/>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold uppercase text-slate-600 mb-1">Vehicle Classification</label>
+            <select class="w-full bg-white border border-slate-300 rounded-lg py-1.5 px-3 text-xs text-slate-800 focus:outline-none focus:border-indigo-600" id="historyTypeFilter" onchange="filterHistoryTable()">
+              <option value="ALL">All Categories</option>
+              <option value="Car">Car</option>
+              <option value="Bike">Bike</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold uppercase text-slate-600 mb-1">Date Interval</label>
+            <input class="w-full bg-white border border-slate-300 rounded-lg py-1.5 px-3 text-xs text-slate-800 focus:outline-none focus:border-indigo-600" type="date" value="2025-05-18"/>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold uppercase text-slate-600 mb-1">Session Status</label>
+            <select class="w-full bg-white border border-slate-300 rounded-lg py-1.5 px-3 text-xs text-slate-800 focus:outline-none focus:border-indigo-600" id="historyStatusFilter" onchange="filterHistoryTable()">
+              <option value="ALL">All Statuses</option>
+              <option value="Active">Active (In Facility)</option>
+              <option value="Completed">Completed (Checked Out)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs" id="historyTable">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-mono text-[11px]">
+                <tr>
+                  <th class="py-3 px-4 font-semibold">Ticket ID</th>
+                  <th class="py-3 px-4 font-semibold">Vehicle Number</th>
+                  <th class="py-3 px-4 font-semibold">Type</th>
+                  <th class="py-3 px-4 font-semibold">Slot ID</th>
+                  <th class="py-3 px-4 font-semibold">Entry Time</th>
+                  <th class="py-3 px-4 font-semibold">Exit Time</th>
+                  <th class="py-3 px-4 font-semibold">Duration</th>
+                  <th class="py-3 px-4 font-semibold">Amount (₹)</th>
+                  <th class="py-3 px-4 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100" id="historyTableBody">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0001</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">MH04AB1234</span></td>
+                  <td class="py-3 px-4 text-slate-600">Car</td>
+                  <td class="py-3 px-4 font-bold text-emerald-600 font-mono">C04</td>
+                  <td class="py-3 px-4 text-slate-500">10:30 AM</td>
+                  <td class="py-3 px-4 text-slate-400 font-mono">--</td>
+                  <td class="py-3 px-4 text-slate-600">4h 15m (Active)</td>
+                  <td class="py-3 px-4 text-emerald-700 font-bold">₹90 (Est)</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0002</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">KA01MJ9082</span></td>
+                  <td class="py-3 px-4 text-slate-600">Bike</td>
+                  <td class="py-3 px-4 font-bold text-emerald-600 font-mono">B02</td>
+                  <td class="py-3 px-4 text-slate-500">11:15 AM</td>
+                  <td class="py-3 px-4 text-slate-400 font-mono">--</td>
+                  <td class="py-3 px-4 text-slate-600">3h 30m (Active)</td>
+                  <td class="py-3 px-4 text-emerald-700 font-bold">₹50 (Est)</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-indigo-600 font-bold font-mono">T0003</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold">DL03CX4412</span></td>
+                  <td class="py-3 px-4 text-slate-600">Car</td>
+                  <td class="py-3 px-4 font-bold text-slate-500 font-mono">C08</td>
+                  <td class="py-3 px-4 text-slate-500">09:00 AM</td>
+                  <td class="py-3 px-4 text-slate-500">01:00 PM</td>
+                  <td class="py-3 px-4 text-slate-600">4h 00m</td>
+                  <td class="py-3 px-4 text-slate-900 font-bold">₹90</td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VIEW 6: USER MANAGEMENT -->
+      <!-- ========================================== -->
+      <section class="spa-view space-y-6 hidden" id="view-users">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-mono font-bold text-indigo-600 uppercase">Person 3 Admin Module</span>
+            <h2 class="text-lg font-bold font-display text-slate-900">Operator &amp; Dispatcher Credentials</h2>
+            <p class="text-xs text-slate-500">Role-based access control (RBAC) management synchronized with MySQL `users` schema.</p>
+          </div>
+          <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-indigo-700 shadow-sm transition-all" onclick="openAddUserModal()">
+            <span class="material-symbols-outlined text-sm">person_add</span>
+            <span>+ Add User</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs" id="userManagementTable">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-mono text-[11px]">
+                <tr>
+                  <th class="py-3 px-4 font-semibold">Username</th>
+                  <th class="py-3 px-4 font-semibold">Role</th>
+                  <th class="py-3 px-4 font-semibold">Account Status</th>
+                  <th class="py-3 px-4 font-semibold">Last Login Time</th>
+                  <th class="py-3 px-4 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">A</span>
+                    <span class="font-bold text-slate-900">admin_root</span>
+                  </td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold">ADMIN</span></td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span></td>
+                  <td class="py-3 px-4 text-slate-500">Today @ 08:30 AM</td>
+                  <td class="py-3 px-4 text-right space-x-2">
+                    <button class="text-indigo-600 hover:underline font-semibold" onclick="alert('Editing admin_root')">Edit</button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">O</span>
+                    <span class="font-bold text-slate-900">operator_l1</span>
+                  </td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600 border border-slate-200 font-medium">OPERATOR</span></td>
+                  <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span></td>
+                  <td class="py-3 px-4 text-slate-500">Today @ 10:14 AM</td>
+                  <td class="py-3 px-4 text-right space-x-2">
+                    <button class="text-indigo-600 hover:underline font-semibold" onclick="alert('Editing operator_l1')">Edit</button>
+                    <button class="text-rose-600 hover:underline font-semibold" onclick="deleteUserRow(this)">Delete</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <!-- 1. ADD USER MODAL -->
+  <div class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" id="addUserModal">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-600">person_add</span>
+          Provision New User
+        </h3>
+        <button class="text-slate-400 hover:text-slate-700 p-1" onclick="closeAddUserModal()">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <form class="space-y-3" onsubmit="handleSaveUser(event)">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Username</label>
+          <input class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="newUsername" placeholder="e.g. operator_john" required="" type="text"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Temporary Password</label>
+          <input class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="newPassword" placeholder="••••••••••••" required="" type="password"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Assigned Role</label>
+          <select class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-800 focus:outline-none focus:border-indigo-600" id="newRole">
+            <option value="OPERATOR">Operator (Standard Gate Operations)</option>
+            <option value="ADMIN">Admin (Supervisory &amp; Tariff Configuration)</option>
+          </select>
+        </div>
+        <div class="pt-2 flex gap-3">
+          <button class="flex-1 py-2 px-4 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-xs" onclick="closeAddUserModal()" type="button">Cancel</button>
+          <button class="flex-1 py-2 px-4 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold shadow-sm" type="submit">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. LOGIN / SESSION MODAL -->
+  <div class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4" id="loginModal">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative">
+      <button class="absolute top-4 right-4 text-slate-400 hover:text-slate-700" onclick="closeLoginModal()">
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+      <div class="text-center pt-2">
+        <div class="w-12 h-12 mx-auto rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 mb-3 shadow-xs">
+          <span class="material-symbols-outlined text-2xl">local_parking</span>
+        </div>
+        <h3 class="font-bold text-base text-slate-900 font-display uppercase tracking-wider">GARAGE PARKING SYSTEM</h3>
+        <p class="text-xs text-slate-500 mt-1">Terminal Gate Access Authentication</p>
+      </div>
+      <form class="space-y-3" onsubmit="handleLoginSubmit(event)">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Terminal Username</label>
+          <input class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="loginUser" required="" type="text" value="admin_root"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Security Key / Password</label>
+          <input class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-900 focus:outline-none focus:border-indigo-600" id="loginPass" required="" type="password" value="••••••••••••"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Operator Profile</label>
+          <select class="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-xs text-slate-800 focus:outline-none focus:border-indigo-600" id="loginRole">
+            <option value="Admin">Admin</option>
+            <option value="Operator">Operator</option>
+          </select>
+        </div>
+        <button class="w-full py-2.5 px-4 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-bold shadow-sm transition-all" type="submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. SLOT INSPECTOR MODAL -->
+  <div class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" id="slotInspectModal">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+          <span>Bay Inspector:</span>
+          <span class="text-emerald-700 font-mono font-bold" id="modalSlotId">C04</span>
+        </h3>
+        <button class="text-slate-400 hover:text-slate-700" onclick="closeInspectModal()">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="flex justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-500">Bay Type:</span>
+          <span class="text-slate-900 font-semibold" id="modalSlotType">Car</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-500">Current Status:</span>
+          <span class="font-bold text-rose-600" id="modalSlotStatus">Occupied</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-500">Parked Plate:</span>
+          <span class="font-mono font-bold text-slate-900" id="modalSlotPlate">MH04AB1234</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-100">
+          <span class="text-slate-500">Entry Time:</span>
+          <span class="text-slate-900 font-semibold" id="modalSlotTime">10:30 AM</span>
+        </div>
+      </div>
+      <div class="pt-2 flex gap-2">
+        <button class="flex-1 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs hover:bg-slate-50 font-semibold shadow-xs" onclick="closeInspectModal()">Dismiss</button>
+        <button class="flex-1 py-2 rounded-lg bg-indigo-600 text-white text-xs hover:bg-indigo-700 font-semibold shadow-sm" id="btnInspectAction" onclick="handleInspectCheckout()">Checkout Bay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT CONTROLLERS -->
+  <script>
+    function toggleSidebar() {
+      const sb = document.getElementById('sideNavBar');
+      sb.classList.toggle('-translate-x-full');
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.spa-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(viewId);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        if (btn.getAttribute('data-target') === viewId) {
+          btn.className = "w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-semibold border-l-4 border-indigo-600 text-sm transition-colors";
+          const icon = btn.querySelector('.material-symbols-outlined');
+          if (icon) icon.className = "material-symbols-outlined text-indigo-600 text-xl";
+        } else {
+          btn.className = "w-full text-left nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors";
+          const icon = btn.querySelector('.material-symbols-outlined');
+          if (icon) icon.className = "material-symbols-outlined text-slate-400 text-xl";
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function autoAssignSlot() {
+      const type = document.querySelector('input[name="vehicleType"]:checked').value;
+      const slot = type === 'Car' ? 'C05' : 'B03';
+      document.getElementById('assignedBanner').classList.remove('hidden');
+      document.querySelector('#assignedBanner p span').textContent = slot;
+      document.querySelector('#assignedBanner div div').textContent = slot;
+      document.getElementById('ticketPreviewSlot').textContent = slot;
+    }
+
+    function handleVehicleEntry(e) {
+      e.preventDefault();
+      const plate = document.getElementById('entryPlate').value.trim();
+      const type = document.querySelector('input[name="vehicleType"]:checked').value;
+      const slot = type === 'Car' ? 'C05' : 'B03';
+      const ticketId = 'T' + Math.floor(1000 + Math.random() * 9000);
+
+      document.getElementById('ticketPreviewId').textContent = ticketId;
+      document.getElementById('ticketPreviewPlate').textContent = plate;
+      document.getElementById('ticketPreviewType').textContent = type + (type === 'Car' ? ' (4-Wheeler)' : ' (2-Wheeler)');
+      document.getElementById('ticketPreviewSlot').textContent = slot;
+      document.getElementById('ticketPreviewTime').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (TODAY)';
+
+      alert('Ticket generated: ' + ticketId + ' for Bay ' + slot);
+    }
+
+    function lookupExitTicket() {
+      const tid = document.getElementById('exitSearchInput').value.trim().toUpperCase();
+      if (tid === 'T0002') {
+        document.getElementById('exitBillPlate').textContent = 'KA01MJ9082';
+        document.getElementById('exitBillSlot').textContent = 'B02';
+        document.getElementById('exitBillEntry').textContent = '11:15 AM';
+        document.getElementById('exitBillExit').textContent = '02:45 PM';
+        document.getElementById('exitBillDuration').textContent = '3 hr 30 min';
+        document.getElementById('exitBillAmount').textContent = '₹50';
+      } else {
+        document.getElementById('exitBillPlate').textContent = 'MH04AB1234';
+        document.getElementById('exitBillSlot').textContent = 'C04';
+        document.getElementById('exitBillEntry').textContent = '10:30 AM';
+        document.getElementById('exitBillExit').textContent = '02:45 PM';
+        document.getElementById('exitBillDuration').textContent = '4 hr 15 min';
+        document.getElementById('exitBillAmount').textContent = '₹90';
+      }
+    }
+
+    function populateAndGoExit(tid) {
+      document.getElementById('exitSearchInput').value = tid;
+      lookupExitTicket();
+      switchView('view-exit');
+    }
+
+    function completeExitProcess() {
+      const slot = document.getElementById('exitBillSlot').textContent;
+      alert('Transaction settled! Bay ' + slot + ' marked AVAILABLE in MySQL repository.');
+      const avail = document.getElementById('stat-available');
+      if (avail) avail.textContent = parseInt(avail.textContent) + 1;
+      const occ = document.getElementById('stat-occupied');
+      if (occ) occ.textContent = parseInt(occ.textContent) - 1;
+      switchView('view-slots');
+    }
+
+    function filterSlots(mode) {
+      document.querySelectorAll('.slot-card').forEach(card => {
+        if (mode === 'all') card.style.display = '';
+        else if (mode === 'available') card.style.display = card.classList.contains('available') ? '' : 'none';
+        else if (mode === 'occupied') card.style.display = card.classList.contains('occupied') ? '' : 'none';
+      });
+      document.getElementById('btnFilterAll').className = mode === 'all' ? "px-3.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-300 text-xs font-bold" : "px-3.5 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 text-xs";
+      document.getElementById('btnFilterAvail').className = mode === 'available' ? "px-3.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-bold flex items-center gap-1.5" : "px-3.5 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 text-xs flex items-center gap-1.5";
+      document.getElementById('btnFilterOcc').className = mode === 'occupied' ? "px-3.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-300 text-xs font-bold flex items-center gap-1.5" : "px-3.5 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 text-xs flex items-center gap-1.5";
+    }
+
+    let currentInspectSlotId = '';
+    function inspectSlot(slotId, type, status, plate, time) {
+      currentInspectSlotId = slotId;
+      document.getElementById('modalSlotId').textContent = slotId;
+      document.getElementById('modalSlotType').textContent = type;
+      document.getElementById('modalSlotStatus').textContent = status;
+      document.getElementById('modalSlotPlate').textContent = plate;
+      document.getElementById('modalSlotTime').textContent = time;
+
+      const actBtn = document.getElementById('btnInspectAction');
+      if (status === 'Occupied') {
+        actBtn.style.display = '';
+        actBtn.textContent = 'Checkout Bay ' + slotId;
+      } else {
+        actBtn.style.display = 'none';
+      }
+      document.getElementById('slotInspectModal').classList.remove('hidden');
+    }
+
+    function closeInspectModal() {
+      document.getElementById('slotInspectModal').classList.add('hidden');
+    }
+
+    function handleInspectCheckout() {
+      closeInspectModal();
+      document.getElementById('exitSearchInput').value = 'T0001';
+      document.getElementById('exitBillSlot').textContent = currentInspectSlotId;
+      switchView('view-exit');
+    }
+
+    function filterHistoryTable() {
+      const q = document.getElementById('historyPlateFilter').value.toUpperCase();
+      const type = document.getElementById('historyTypeFilter').value;
+      const status = document.getElementById('historyStatusFilter').value;
+
+      document.querySelectorAll('#historyTableBody tr').forEach(row => {
+        const text = row.innerText.toUpperCase();
+        const matchesQ = !q || text.includes(q);
+        const matchesType = type === 'ALL' || text.includes(type.toUpperCase());
+        const matchesStatus = status === 'ALL' || text.includes(status.toUpperCase());
+        row.style.display = (matchesQ && matchesType && matchesStatus) ? '' : 'none';
+      });
+    }
+
+    function exportCSV() {
+      alert('Generating CSV export from MySQL schema: parking_transactions_20250518.csv');
+    }
+
+    function openAddUserModal() {
+      document.getElementById('addUserModal').classList.remove('hidden');
+    }
+    function closeAddUserModal() {
+      document.getElementById('addUserModal').classList.add('hidden');
+    }
+    function handleSaveUser(e) {
+      e.preventDefault();
+      const u = document.getElementById('newUsername').value;
+      const r = document.getElementById('newRole').value;
+      alert('User ' + u + ' (' + r + ') successfully provisioned in MySQL database.');
+      closeAddUserModal();
+    }
+    function deleteUserRow(btn) {
+      if (confirm('Revoke access for this operator?')) {
+        btn.closest('tr').remove();
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const u = document.getElementById('loginUser').value;
+      alert('Authenticated as ' + u + '. Reloading session credentials...');
+      closeLoginModal();
+    }
+  </script>
+</body>
+</html>
